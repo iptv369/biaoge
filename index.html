@@ -1,0 +1,2652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多功能工作簿表格系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon"
+href="https://img.sobot.com/7d040de93a3d479ba1d071926f043ea2/chatres/7d040de93a3d479ba1d071926f043ea2/msg/20251106/3e0e4df477d9be2659f3297fbd20b998/23484c212411487083f0acfdb9f63c84.png"type="image/png">
+      <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #6b8cbc;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --border-color: #dee2e6;
+            --sidebar-width: 250px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: var(--sidebar-width);
+            background: white;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            position: relative;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .sidebar-header h1 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .workbook-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+        
+        .workbook-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 3px solid transparent;
+        }
+        
+        .workbook-item:hover {
+            background-color: rgba(74, 111, 165, 0.05);
+        }
+        
+        .workbook-item.active {
+            background-color: rgba(74, 111, 165, 0.1);
+            border-left-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .workbook-item i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* 侧边栏颜色面板 */
+        .sidebar-color-panel {
+            margin: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .panel-header {
+            background-color: var(--warning-color);
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .panel-header h3 {
+            color: var(--dark-color);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+        
+        .toggle-panel {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--dark-color);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        
+        .toggle-panel:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        .panel-content {
+            max-height: 400px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-color-panel.collapsed .panel-content {
+            max-height: 0;
+        }
+        
+        .color-controls {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .color-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        
+        .color-btn {
+            padding: 10px 8px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+            min-height: 40px;
+            aspect-ratio: 1;
+        }
+        
+        .color-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+        
+        .color-btn.yellow {
+            background-color: #FFEB3B;
+        }
+        
+        .color-btn.blue {
+            background-color: #2196F3;
+        }
+        
+        .color-btn.red {
+            background-color: #F44336;
+        }
+        
+        .color-btn.green {
+            background-color: #4CAF50;
+        }
+        
+        .color-btn.purple {
+            background-color: #9C27B0;
+        }
+        
+        .color-btn.orange {
+            background-color: #FF9800;
+        }
+        
+        .color-btn.clear {
+            background-color: #f8f9fa;
+            color: #333;
+            border: 1px solid #dee2e6;
+            grid-column: span 3;
+            aspect-ratio: auto;
+        }
+        
+        .color-notes {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .color-note-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .color-sample {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            flex-shrink: 0;
+        }
+        
+        .color-sample.yellow {
+            background-color: rgba(255, 235, 59, 0.3);
+        }
+        
+        .color-sample.blue {
+            background-color: rgba(33, 150, 243, 0.2);
+        }
+        
+        .color-sample.red {
+            background-color: rgba(244, 67, 54, 0.2);
+        }
+        
+        .color-sample.green {
+            background-color: rgba(76, 175, 80, 0.2);
+        }
+        
+        .color-sample.purple {
+            background-color: rgba(156, 39, 176, 0.2);
+        }
+        
+        .color-sample.orange {
+            background-color: rgba(255, 152, 0, 0.2);
+        }
+        
+        .color-note-input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .color-note-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
+        }
+        
+        .panel-footer {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.75rem;
+            color: #666;
+            text-align: center;
+        }
+        
+        .add-workbook-btn {
+            margin: 15px;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .add-workbook-btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .top-bar {
+            background: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .workbook-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: var(--dark-color);
+        }
+        
+        .btn-info {
+            background-color: var(--info-color);
+            color: white;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .table-container {
+            flex: 1;
+            overflow: auto;
+            margin: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            background-color: var(--light-color);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+        
+        tr.search-match {
+            background-color: rgba(255, 193, 7, 0.2);
+        }
+        
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        input[type="text"]:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
+        }
+        
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+        }
+        
+        .delete-btn:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+        
+        .status {
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin: 0 20px;
+            display: none;
+        }
+        
+        .status.success {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+        }
+        
+        .status.error {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+        }
+        
+        .status.warning {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: var(--warning-color);
+            border: 1px solid var(--warning-color);
+        }
+        
+        .status.info {
+            background-color: rgba(23, 162, 184, 0.1);
+            color: var(--info-color);
+            border: 1px solid var(--info-color);
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .auth-section {
+            background-color: rgba(74, 111, 165, 0.05);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .auth-section h3 {
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .auth-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .auth-input-container {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+        
+        .auth-input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .toggle-visibility {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .auth-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
+        }
+        
+        .sync-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .token-management {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .token-management p {
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .token-management-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .token-management .btn {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .share-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .share-section h4 {
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .search-section {
+            background-color: rgba(23, 162, 184, 0.05);
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 0 20px 20px;
+            border-left: 4px solid var(--info-color);
+        }
+        
+        .search-section h3 {
+            margin-bottom: 15px;
+            color: var(--info-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .search-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .search-input-container {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .search-clear {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .search-options {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .search-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .search-results {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .search-results.highlight {
+            color: var(--info-color);
+            font-weight: 600;
+        }
+        
+        .view-mode-section {
+            background-color: rgba(40, 167, 69, 0.05);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px;
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .view-mode-section h3 {
+            margin-bottom: 15px;
+            color: var(--success-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .readonly-table td {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .readonly-table tr:hover td {
+            background-color: #e9ecef;
+        }
+        
+        .auto-refresh-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8rem;
+            color: var(--success-color);
+            margin-left: 10px;
+        }
+        
+        .auto-refresh-indicator .pulse {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--success-color);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+        
+        .view-mode .auth-section,
+        .view-mode .search-section,
+        .view-mode .add-workbook-btn,
+        .view-mode .controls,
+        .view-mode .view-mode-section,
+        .view-mode .sidebar-color-panel {
+            display: none !important;
+        }
+        
+        .view-mode .table-container {
+            margin-top: 0;
+        }
+        
+        .view-mode .top-bar {
+            justify-content: center;
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .view-mode .workbook-title {
+            color: white;
+        }
+        
+        .view-mode .workbook-title i {
+            color: white;
+        }
+        
+        .row-selected {
+            background-color: rgba(74, 111, 165, 0.1) !important;
+        }
+        
+        .row-yellow {
+            background-color: rgba(255, 235, 59, 0.3) !important;
+        }
+        
+        .row-blue {
+            background-color: rgba(33, 150, 243, 0.2) !important;
+        }
+        
+        .row-red {
+            background-color: rgba(244, 67, 54, 0.2) !important;
+        }
+        
+        .row-green {
+            background-color: rgba(76, 175, 80, 0.2) !important;
+        }
+        
+        .row-purple {
+            background-color: rgba(156, 39, 176, 0.2) !important;
+        }
+        
+        .row-orange {
+            background-color: rgba(255, 152, 0, 0.2) !important;
+        }
+        
+        /* 颜色标签列样式 */
+        .color-tag-cell {
+            font-weight: bold;
+            text-align: center;
+            width: 100px;
+        }
+        
+        .color-tag-yellow {
+            color: #b3a200;
+            background-color: rgba(255, 235, 59, 0.2);
+        }
+        
+        .color-tag-blue {
+            color: #1565C0;
+            background-color: rgba(33, 150, 243, 0.1);
+        }
+        
+        .color-tag-red {
+            color: #C62828;
+            background-color: rgba(244, 67, 54, 0.1);
+        }
+        
+        .color-tag-green {
+            color: #2E7D32;
+            background-color: rgba(76, 175, 80, 0.1);
+        }
+        
+        .color-tag-purple {
+            color: #7B1FA2;
+            background-color: rgba(156, 39, 176, 0.1);
+        }
+        
+        .color-tag-orange {
+            color: #EF6C00;
+            background-color: rgba(255, 152, 0, 0.1);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h2 {
+            color: var(--primary-color);
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        /* 新增：查看模式下的颜色标签图例 */
+        .color-tag-legend {
+            margin: 10px 20px 0;
+            padding: 15px;
+            background-color: rgba(255, 193, 7, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid var(--warning-color);
+        }
+        
+        .color-tag-legend h4 {
+            margin-bottom: 10px;
+            color: var(--warning-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .color-tag-legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .color-tag-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .color-tag-legend-sample {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            flex-shrink: 0;
+        }
+        
+        .color-tag-legend-sample.yellow {
+            background-color: rgba(255, 235, 59, 0.3);
+        }
+        
+        .color-tag-legend-sample.blue {
+            background-color: rgba(33, 150, 243, 0.2);
+        }
+        
+        .color-tag-legend-sample.red {
+            background-color: rgba(244, 67, 54, 0.2);
+        }
+        
+        .color-tag-legend-sample.green {
+            background-color: rgba(76, 175, 80, 0.2);
+        }
+        
+        .color-tag-legend-sample.purple {
+            background-color: rgba(156, 39, 176, 0.2);
+        }
+        
+        .color-tag-legend-sample.orange {
+            background-color: rgba(255, 152, 0, 0.2);
+        }
+        
+        /* 修复查看模式下颜色显示问题 */
+        .view-mode .table-container table tr.row-yellow {
+            background-color: rgba(255, 235, 59, 0.3) !important;
+        }
+        
+        .view-mode .table-container table tr.row-blue {
+            background-color: rgba(33, 150, 243, 0.2) !important;
+        }
+        
+        .view-mode .table-container table tr.row-red {
+            background-color: rgba(244, 67, 54, 0.2) !important;
+        }
+        
+        .view-mode .table-container table tr.row-green {
+            background-color: rgba(76, 175, 80, 0.2) !important;
+        }
+        
+        .view-mode .table-container table tr.row-purple {
+            background-color: rgba(156, 39, 176, 0.2) !important;
+        }
+        
+        .view-mode .table-container table tr.row-orange {
+            background-color: rgba(255, 152, 0, 0.2) !important;
+        }
+        
+        /* 确保查看模式下表格行颜色不被覆盖 */
+        .view-mode .table-container table tr.row-yellow td,
+        .view-mode .table-container table tr.row-blue td,
+        .view-mode .table-container table tr.row-red td,
+        .view-mode .table-container table tr.row-green td,
+        .view-mode .table-container table tr.row-purple td,
+        .view-mode .table-container table tr.row-orange td {
+            background-color: transparent !important;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
+            .workbook-list {
+                display: flex;
+                overflow-x: auto;
+                padding: 10px;
+            }
+            
+            .workbook-item {
+                white-space: nowrap;
+                border-left: none;
+                border-bottom: 3px solid transparent;
+            }
+            
+            .workbook-item.active {
+                border-left: none;
+                border-bottom-color: var(--primary-color);
+            }
+            
+            .controls {
+                flex-wrap: wrap;
+            }
+            
+            .auth-form {
+                flex-direction: column;
+            }
+            
+            .search-controls {
+                flex-direction: column;
+            }
+            
+            .color-buttons {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .color-tag-legend-items {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1><i class="fas fa-table"></i> 多工作簿表格</h1>
+            <p>管理多个表格数据</p>
+        </div>
+        
+        <div class="workbook-list" id="workbookList">
+            <!-- 工作簿列表将通过JavaScript动态生成 -->
+        </div>
+        
+        <!-- 侧边栏颜色面板 -->
+        <div class="sidebar-color-panel" id="sidebarColorPanel">
+            <div class="panel-header">
+                <h3><i class="fas fa-palette"></i> 颜色标签</h3>
+                <button class="toggle-panel" id="togglePanel">
+                    <i class="fas fa-chevron-up" id="panelIcon"></i>
+                </button>
+            </div>
+            <div class="panel-content">
+                <div class="color-controls">
+                    <div class="color-buttons">
+                        <button class="color-btn yellow" id="yellowBtn"></button>
+                        <button class="color-btn blue" id="blueBtn"></button>
+                        <button class="color-btn red" id="redBtn"></button>
+                        <button class="color-btn green" id="greenBtn"></button>
+                        <button class="color-btn purple" id="purpleBtn"></button>
+                        <button class="color-btn orange" id="orangeBtn"></button>
+                        <button class="color-btn clear" id="clearColorBtn">
+                            <i class="fas fa-eraser"></i> 清除标签
+                        </button>
+                    </div>
+                    
+                    <div class="color-notes">
+                        <div class="color-note-item">
+                            <div class="color-sample yellow"></div>
+                            <input type="text" class="color-note-input" id="yellowNote" placeholder="黄色标签文字..." value="重要">
+                        </div>
+                        <div class="color-note-item">
+                            <div class="color-sample blue"></div>
+                            <input type="text" class="color-note-input" id="blueNote" placeholder="蓝色标签文字..." value="一般">
+                        </div>
+                        <div class="color-note-item">
+                            <div class="color-sample red"></div>
+                            <input type="text" class="color-note-input" id="redNote" placeholder="红色标签文字..." value="紧急">
+                        </div>
+                        <div class="color-note-item">
+                            <div class="color-sample green"></div>
+                            <input type="text" class="color-note-input" id="greenNote" placeholder="绿色标签文字..." value="已完成">
+                        </div>
+                        <div class="color-note-item">
+                            <div class="color-sample purple"></div>
+                            <input type="text" class="color-note-input" id="purpleNote" placeholder="紫色标签文字..." value="待审核">
+                        </div>
+                        <div class="color-note-item">
+                            <div class="color-sample orange"></div>
+                            <input type="text" class="color-note-input" id="orangeNote" placeholder="橙色标签文字..." value="进行中">
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-footer">
+                    点击表格行选择，然后点击颜色标签按钮
+                </div>
+            </div>
+        </div>
+        
+        <button class="add-workbook-btn" id="addWorkbookBtn">
+            <i class="fas fa-plus"></i> 添加工作簿
+        </button>
+    </div>
+    
+    <!-- 主内容区域 -->
+    <div class="main-content">
+        <!-- GitHub身份验证区域 -->
+        <div class="auth-section">
+            <h3><i class="fas fa-key"></i> GitHub身份验证与数据共享</h3>
+            <div class="auth-form">
+                <div class="auth-input-container">
+                    <input type="password" class="auth-input" id="tokenInput" placeholder="输入GitHub个人访问令牌" autocomplete="off">
+                    <button class="toggle-visibility" id="toggleTokenVisibility" type="button">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <button class="btn btn-primary" id="authBtn">验证并加载</button>
+            </div>
+            
+            <!-- 新增共享数据加载区域 -->
+            <div class="shared-data-section" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                <h4><i class="fas fa-share-alt"></i> 加载共享数据</h4>
+                <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <input type="text" class="auth-input" id="sharedGistId" placeholder="输入共享的Gist ID">
+                    </div>
+                    <button class="btn btn-info" id="loadSharedBtn">
+                        <i class="fas fa-cloud-download-alt"></i> 加载共享
+                    </button>
+                </div>
+                <p style="font-size: 0.8rem; color: #666; margin-top: 8px;">
+                    从他人分享的Gist ID加载数据（需要自己的GitHub令牌）
+                </p>
+            </div>
+            
+            <div class="sync-info" id="syncInfo" style="display: none;">
+                <i class="fas fa-info-circle"></i>
+                <span>已连接到GitHub Gist，数据将自动保存和同步</span>
+            </div>
+            
+            <!-- 新增分享功能 -->
+            <div class="share-section" id="shareSection" style="display: none;">
+                <h4><i class="fas fa-share"></i> 分享您的工作簿</h4>
+                <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <input type="text" class="auth-input" id="shareLink" readonly placeholder="分享链接将在这里生成">
+                    </div>
+                    <button class="btn btn-success" id="generateShareBtn">
+                        <i class="fas fa-link"></i> 生成分享链接
+                    </button>
+                    <button class="btn btn-info" id="copyShareBtn" style="display: none;">
+                        <i class="fas fa-copy"></i> 复制链接
+                    </button>
+                </div>
+                <p style="font-size: 0.8rem; color: #666; margin-top: 8px;">
+                    分享此链接给他人，他们可以用自己的GitHub令牌加载您的数据
+                </p>
+            </div>
+            
+            <div class="token-management" id="tokenManagement" style="display: none;">
+                <p>令牌状态: <span id="tokenStatus">已保存</span></p>
+                <div class="token-management-buttons">
+                    <button class="btn btn-warning" id="updateTokenBtn">
+                        <i class="fas fa-edit"></i> 更新令牌
+                    </button>
+                    <button class="btn btn-danger" id="clearTokenBtn">
+                        <i class="fas fa-trash"></i> 清除令牌
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 查看模式设置 -->
+        <div class="view-mode-section">
+            <h3><i class="fas fa-eye"></i> 查看模式设置</h3>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <input type="text" class="auth-input" id="viewGistId" placeholder="输入只读Gist ID">
+                </div>
+                <button class="btn btn-success" id="enterViewModeBtn">
+                    <i class="fas fa-eye"></i> 进入查看模式
+                </button>
+                <button class="btn btn-info" id="autoRefreshToggle" style="display: none;">
+                    <i class="fas fa-sync"></i> 开启自动刷新
+                </button>
+            </div>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 8px;">
+                输入Gist ID进入只读查看模式，数据会自动刷新（无需登录）
+            </p>
+        </div>
+        
+        <!-- 搜索区域 -->
+        <div class="search-section">
+            <h3><i class="fas fa-search"></i> 表格搜索</h3>
+            <div class="search-controls">
+                <div class="search-input-container">
+                    <input type="text" class="search-input" id="searchInput" placeholder="输入关键词搜索表格内容...">
+                    <button class="search-clear" id="clearSearchBtn" type="button">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="search-options">
+                    <div class="search-option">
+                        <input type="checkbox" id="caseSensitiveCheckbox">
+                        <label for="caseSensitiveCheckbox">区分大小写</label>
+                    </div>
+                    <div class="search-option">
+                        <input type="checkbox" id="exactMatchCheckbox">
+                        <label for="exactMatchCheckbox">精确匹配</label>
+                    </div>
+                </div>
+                <button class="btn btn-info" id="prevMatchBtn">
+                    <i class="fas fa-chevron-up"></i> 上一个
+                </button>
+                <button class="btn btn-info" id="nextMatchBtn">
+                    <i class="fas fa-chevron-down"></i> 下一个
+                </button>
+            </div>
+            <div class="search-results" id="searchResults">
+                输入关键词开始搜索...
+            </div>
+        </div>
+        
+        <!-- 状态消息 -->
+        <div class="status" id="statusMessage"></div>
+        
+        <!-- 顶部工具栏 -->
+        <div class="top-bar">
+            <div class="workbook-title" id="workbookTitle">
+                <i class="fas fa-book"></i> <span id="currentWorkbookName">请选择工作簿</span>
+            </div>
+            <div class="controls">
+                <button class="btn btn-primary" id="addRowBtn" disabled>
+                    <i class="fas fa-plus"></i> 添加新行
+                </button>
+                <button class="btn btn-success" id="saveBtn" disabled>
+                    <i class="fas fa-save"></i> 保存表格
+                </button>
+                <button class="btn btn-warning" id="refreshBtn" disabled>
+                    <i class="fas fa-sync"></i> 刷新数据
+                </button>
+                <button class="btn btn-danger" id="deleteWorkbookBtn" disabled>
+                    <i class="fas fa-trash"></i> 删除工作簿
+                </button>
+                <button class="btn btn-info" id="shareBtn" disabled>
+                    <i class="fas fa-share"></i> 分享工作簿
+                </button>
+            </div>
+        </div>
+        
+        <!-- 表格容器 -->
+        <div class="table-container">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>颜色标签</th>
+                        <th>姓名</th>
+                        <th>年龄</th>
+                        <th>职业</th>
+                        <th>城市</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- 表格内容将通过JavaScript动态生成 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- 添加工作簿模态框 -->
+    <div class="modal" id="addWorkbookModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-plus"></i> 添加新工作簿</h2>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="workbookName">工作簿名称</label>
+                <input type="text" class="form-control" id="workbookName" placeholder="例如: 客人寄付快递登记">
+            </div>
+            <div class="form-group">
+                <label for="workbookColumns">列设置 (每行一个列名)</label>
+                <textarea class="form-control" id="workbookColumns" rows="5" placeholder="例如：
+姓名
+年龄
+职业
+城市">颜色标签
+姓名
+年龄
+职业
+城市</textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="createWorkbookBtn">创建工作簿</button>
+                <button class="btn" id="cancelCreateBtn">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const workbookList = document.getElementById('workbookList');
+        const addWorkbookBtn = document.getElementById('addWorkbookBtn');
+        const workbookTitle = document.getElementById('workbookTitle');
+        const currentWorkbookName = document.getElementById('currentWorkbookName');
+        const tableBody = document.getElementById('tableBody');
+        const addRowBtn = document.getElementById('addRowBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const deleteWorkbookBtn = document.getElementById('deleteWorkbookBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const authBtn = document.getElementById('authBtn');
+        const tokenInput = document.getElementById('tokenInput');
+        const toggleTokenVisibility = document.getElementById('toggleTokenVisibility');
+        const syncInfo = document.getElementById('syncInfo');
+        const tokenManagement = document.getElementById('tokenManagement');
+        const tokenStatus = document.getElementById('tokenStatus');
+        const updateTokenBtn = document.getElementById('updateTokenBtn');
+        const clearTokenBtn = document.getElementById('clearTokenBtn');
+        const sharedGistId = document.getElementById('sharedGistId');
+        const loadSharedBtn = document.getElementById('loadSharedBtn');
+        const shareSection = document.getElementById('shareSection');
+        const shareLink = document.getElementById('shareLink');
+        const generateShareBtn = document.getElementById('generateShareBtn');
+        const copyShareBtn = document.getElementById('copyShareBtn');
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const caseSensitiveCheckbox = document.getElementById('caseSensitiveCheckbox');
+        const exactMatchCheckbox = document.getElementById('exactMatchCheckbox');
+        const prevMatchBtn = document.getElementById('prevMatchBtn');
+        const nextMatchBtn = document.getElementById('nextMatchBtn');
+        const searchResults = document.getElementById('searchResults');
+        const viewGistId = document.getElementById('viewGistId');
+        const enterViewModeBtn = document.getElementById('enterViewModeBtn');
+        const autoRefreshToggle = document.getElementById('autoRefreshToggle');
+        const yellowBtn = document.getElementById('yellowBtn');
+        const blueBtn = document.getElementById('blueBtn');
+        const redBtn = document.getElementById('redBtn');
+        const greenBtn = document.getElementById('greenBtn');
+        const purpleBtn = document.getElementById('purpleBtn');
+        const orangeBtn = document.getElementById('orangeBtn');
+        const clearColorBtn = document.getElementById('clearColorBtn');
+        const yellowNote = document.getElementById('yellowNote');
+        const blueNote = document.getElementById('blueNote');
+        const redNote = document.getElementById('redNote');
+        const greenNote = document.getElementById('greenNote');
+        const purpleNote = document.getElementById('purpleNote');
+        const orangeNote = document.getElementById('orangeNote');
+        const sidebarColorPanel = document.getElementById('sidebarColorPanel');
+        const togglePanel = document.getElementById('togglePanel');
+        const panelIcon = document.getElementById('panelIcon');
+        const addWorkbookModal = document.getElementById('addWorkbookModal');
+        const closeModal = document.getElementById('closeModal');
+        const workbookNameInput = document.getElementById('workbookName');
+        const workbookColumnsInput = document.getElementById('workbookColumns');
+        const createWorkbookBtn = document.getElementById('createWorkbookBtn');
+        const cancelCreateBtn = document.getElementById('cancelCreateBtn');
+
+        // 全局变量
+        let workbooks = [];
+        let currentWorkbook = null;
+        let tableData = [];
+        let githubToken = null;
+        let isAuthenticated = false;
+        let gistId = null;
+        let tokenVisible = false;
+        
+        // 搜索相关变量
+        let searchMatches = [];
+        let currentMatchIndex = -1;
+        
+        // 查看模式相关变量
+        let isViewMode = false;
+        let autoRefreshInterval = null;
+        let autoRefreshEnabled = false;
+        let currentViewGistId = null;
+        
+        // 颜色标签相关变量
+        let selectedRowIndex = -1;
+        let colorLabels = {
+            yellow: "",
+            blue: "",
+            red: "",
+            green: "",
+            purple: "",
+            orange: ""
+        };
+        
+        // 面板状态
+        let isPanelCollapsed = false;
+
+        // 初始示例工作簿 - 使用颜色标签
+        const initialWorkbooks = [
+            {
+                id: 'workbook-1',
+                name: '客人寄付快递登记',
+                columns: ['颜色标签', '姓名', '电话', '快递单号', '寄付日期', '物品类型', '状态'],
+                data: [
+                    { '颜色标签': '', '姓名': '张三', '电话': '13800138000', '快递单号': 'SF123456789', '寄付日期': '2023-06-01', '物品类型': '文件', '状态': '已寄出', '_rowColor': 'yellow' },
+                    { '颜色标签': '', '姓名': '李四', '电话': '13900139000', '快递单号': 'YT987654321', '寄付日期': '2023-06-02', '物品类型': '包裹', '状态': '待揽收', '_rowColor': 'blue' },
+                    { '颜色标签': '', '姓名': '王五', '电话': '13700137000', '快递单号': 'ZT112233445', '寄付日期': '2023-06-03', '物品类型': '电子产品', '状态': '运输中', '_rowColor': 'orange' }
+                ]
+            },
+            {
+                id: 'workbook-2',
+                name: '客人退货快递登记',
+                columns: ['颜色标签', '姓名', '电话', '订单号', '退货单号', '退货原因', '处理状态'],
+                data: [
+                    { '颜色标签': '', '姓名': '赵六', '电话': '13600136000', '订单号': 'ORD001', '退货单号': 'TH123456789', '退货原因': '尺寸不合适', '处理状态': '待审核', '_rowColor': 'purple' },
+                    { '颜色标签': '', '姓名': '钱七', '电话': '13500135000', '订单号': 'ORD002', '退货单号': 'TH987654321', '退货原因': '商品损坏', '处理状态': '已退款', '_rowColor': 'green' },
+                    { '颜色标签': '', '姓名': '孙八', '电话': '13400134000', '订单号': 'ORD003', '退货单号': 'TH556677889', '退货原因': '颜色不符', '处理状态': '处理中', '_rowColor': 'red' }
+                ]
+            }
+        ];
+
+        // 简单的加密函数（注意：这只是基本混淆，不是真正的加密）
+        function simpleEncrypt(text) {
+            return btoa(unescape(encodeURIComponent(text)));
+        }
+
+        // 简单的解密函数
+        function simpleDecrypt(encrypted) {
+            try {
+                return decodeURIComponent(escape(atob(encrypted)));
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // 保存令牌到本地存储
+        function saveTokenToStorage(token) {
+            const encryptedToken = simpleEncrypt(token);
+            localStorage.setItem('githubTokenEncrypted', encryptedToken);
+            localStorage.setItem('tokenSaved', 'true');
+        }
+
+        // 从本地存储加载令牌
+        function loadTokenFromStorage() {
+            const encryptedToken = localStorage.getItem('githubTokenEncrypted');
+            if (encryptedToken) {
+                return simpleDecrypt(encryptedToken);
+            }
+            return null;
+        }
+
+        // 清除本地存储的令牌
+        function clearTokenFromStorage() {
+            localStorage.removeItem('githubTokenEncrypted');
+            localStorage.removeItem('tokenSaved');
+            localStorage.removeItem('multiTableGistId');
+            tokenInput.value = '';
+            githubToken = null;
+            isAuthenticated = false;
+            gistId = null;
+            tokenManagement.style.display = 'none';
+            syncInfo.style.display = 'none';
+            shareSection.style.display = 'none';
+            showStatus('令牌已清除', 'success');
+        }
+
+        // 切换令牌可见性
+        toggleTokenVisibility.addEventListener('click', function() {
+            tokenVisible = !tokenVisible;
+            if (tokenVisible) {
+                tokenInput.type = 'text';
+                toggleTokenVisibility.innerHTML = '<i class="fas fa-eye-slash"></i>';
+            } else {
+                tokenInput.type = 'password';
+                toggleTokenVisibility.innerHTML = '<i class="fas fa-eye"></i>';
+            }
+        });
+
+        // 更新令牌
+        updateTokenBtn.addEventListener('click', function() {
+            tokenInput.value = '';
+            tokenManagement.style.display = 'none';
+            showStatus('请输入新令牌', 'warning');
+        });
+
+        // 清除令牌
+        clearTokenBtn.addEventListener('click', function() {
+            if (confirm('确定要清除令牌吗？这将断开与GitHub的连接。')) {
+                clearTokenFromStorage();
+                workbooks = initialWorkbooks;
+                renderWorkbookList();
+                
+                if (workbooks.length > 0) {
+                    switchWorkbook(workbooks[0].id);
+                }
+                
+                showStatus('已切换到本地模式。请重新验证以启用云同步。', 'warning');
+                toggleControls(false);
+            }
+        });
+
+        // 搜索功能
+        function performSearch() {
+            const searchTerm = searchInput.value.trim();
+            const caseSensitive = caseSensitiveCheckbox.checked;
+            const exactMatch = exactMatchCheckbox.checked;
+            
+            // 清除之前的搜索结果
+            clearSearchHighlights();
+            searchMatches = [];
+            currentMatchIndex = -1;
+            
+            if (searchTerm === '') {
+                searchResults.textContent = '输入关键词开始搜索...';
+                prevMatchBtn.disabled = true;
+                nextMatchBtn.disabled = true;
+                return;
+            }
+            
+            // 遍历表格数据查找匹配项
+            tableData.forEach((row, rowIndex) => {
+                let rowMatch = false;
+                
+                // 检查每一列的值
+                Object.values(row).forEach((value, colIndex) => {
+                    if (value) {
+                        let searchValue = value.toString();
+                        let searchTermValue = searchTerm;
+                        
+                        if (!caseSensitive) {
+                            searchValue = searchValue.toLowerCase();
+                            searchTermValue = searchTermValue.toLowerCase();
+                        }
+                        
+                        let match = false;
+                        if (exactMatch) {
+                            match = searchValue === searchTermValue;
+                        } else {
+                            match = searchValue.includes(searchTermValue);
+                        }
+                        
+                        if (match) {
+                            rowMatch = true;
+                            searchMatches.push({
+                                rowIndex: rowIndex,
+                                colIndex: colIndex,
+                                value: value
+                            });
+                        }
+                    }
+                });
+                
+                // 如果行中有匹配项，高亮显示该行
+                if (rowMatch) {
+                    const tableRows = tableBody.querySelectorAll('tr');
+                    if (tableRows[rowIndex]) {
+                        tableRows[rowIndex].classList.add('search-match');
+                    }
+                }
+            });
+            
+            // 更新搜索结果信息
+            if (searchMatches.length > 0) {
+                searchResults.innerHTML = `找到 <span class="highlight">${searchMatches.length}</span> 个匹配项`;
+                prevMatchBtn.disabled = false;
+                nextMatchBtn.disabled = false;
+                navigateToMatch(0); // 自动跳转到第一个匹配项
+            } else {
+                searchResults.innerHTML = `未找到 "<span class="highlight">${searchTerm}</span>" 的匹配项`;
+                prevMatchBtn.disabled = true;
+                nextMatchBtn.disabled = true;
+            }
+        }
+
+        // 清除搜索高亮
+        function clearSearchHighlights() {
+            const tableRows = tableBody.querySelectorAll('tr');
+            tableRows.forEach(row => {
+                row.classList.remove('search-match');
+            });
+        }
+
+        // 导航到匹配项
+        function navigateToMatch(index) {
+            if (searchMatches.length === 0) return;
+            
+            // 确保索引在有效范围内
+            currentMatchIndex = (index + searchMatches.length) % searchMatches.length;
+            
+            const match = searchMatches[currentMatchIndex];
+            const tableRows = tableBody.querySelectorAll('tr');
+            
+            if (tableRows[match.rowIndex]) {
+                // 滚动到匹配的行
+                tableRows[match.rowIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // 高亮当前匹配项
+                tableRows.forEach(row => row.classList.remove('current-match'));
+                tableRows[match.rowIndex].classList.add('current-match');
+                
+                // 更新搜索结果信息
+                searchResults.innerHTML = `匹配项 <span class="highlight">${currentMatchIndex + 1}</span> / <span class="highlight">${searchMatches.length}</span>`;
+            }
+        }
+
+        // 上一个匹配项
+        prevMatchBtn.addEventListener('click', function() {
+            navigateToMatch(currentMatchIndex - 1);
+        });
+
+        // 下一个匹配项
+        nextMatchBtn.addEventListener('click', function() {
+            navigateToMatch(currentMatchIndex + 1);
+        });
+
+        // 清除搜索
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clearSearchHighlights();
+            searchMatches = [];
+            currentMatchIndex = -1;
+            searchResults.textContent = '输入关键词开始搜索...';
+            prevMatchBtn.disabled = true;
+            nextMatchBtn.disabled = true;
+        });
+
+        // 搜索输入事件
+        searchInput.addEventListener('input', performSearch);
+        caseSensitiveCheckbox.addEventListener('change', performSearch);
+        exactMatchCheckbox.addEventListener('change', performSearch);
+
+        // 渲染工作簿列表
+        function renderWorkbookList() {
+            workbookList.innerHTML = '';
+            
+            workbooks.forEach(workbook => {
+                const workbookItem = document.createElement('div');
+                workbookItem.className = `workbook-item ${workbook.id === currentWorkbook?.id ? 'active' : ''}`;
+                workbookItem.innerHTML = `
+                    <i class="fas fa-book"></i>
+                    <span>${workbook.name}</span>
+                `;
+                workbookItem.addEventListener('click', () => switchWorkbook(workbook.id));
+                workbookList.appendChild(workbookItem);
+            });
+        }
+
+        // 渲染表格
+        function renderTable() {
+            tableBody.innerHTML = '';
+            
+            if (!currentWorkbook || tableData.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td colspan="${currentWorkbook ? currentWorkbook.columns.length + 1 : 6}" style="text-align: center; color: #666; padding: 40px;">
+                        <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 10px; display: block;"></i>
+                        <p>表格为空，点击"添加新行"按钮开始添加数据</p>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+                return;
+            }
+            
+            // 渲染表头
+            const thead = document.querySelector('#dataTable thead');
+            thead.innerHTML = '';
+            let headerRow = '<tr>';
+            currentWorkbook.columns.forEach(column => {
+                headerRow += `<th>${column}</th>`;
+            });
+            headerRow += '<th>操作</th></tr>';
+            thead.innerHTML = headerRow;
+            
+            // 渲染表格数据
+            tableData.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                let rowHtml = '';
+                
+                // 第一列是颜色标签列，特殊处理
+                currentWorkbook.columns.forEach((column, colIndex) => {
+                    if (colIndex === 0) {
+                        // 颜色标签列 - 现在为空
+                        const colorTagClass = getColorTagClass(row._rowColor);
+                        rowHtml += `<td class="color-tag-cell ${colorTagClass}"></td>`;
+                    } else {
+                        rowHtml += `<td><input type="text" value="${row[column] || ''}" data-index="${index}" data-field="${column}"></td>`;
+                    }
+                });
+                
+                rowHtml += `<td><button class="delete-btn" data-index="${index}" title="删除此行"><i class="fas fa-times"></i></button></td>`;
+                tr.innerHTML = rowHtml;
+                
+                // 应用行颜色 - 关键修复
+                if (row._rowColor && row._rowColor !== '') {
+                    tr.classList.add(`row-${row._rowColor}`);
+                }
+                
+                // 添加行选择事件
+                tr.addEventListener('click', function(e) {
+                    // 如果点击的是删除按钮，则不选择行
+                    if (e.target.closest('.delete-btn')) return;
+                    
+                    // 清除之前选中的行
+                    document.querySelectorAll('.row-selected').forEach(r => {
+                        r.classList.remove('row-selected');
+                    });
+                    
+                    // 选中当前行
+                    this.classList.add('row-selected');
+                    selectedRowIndex = index;
+                    
+                    showStatus(`已选择第 ${index + 1} 行，请选择颜色标签`, 'info');
+                });
+                
+                tableBody.appendChild(tr);
+            });
+            
+            // 添加事件监听器
+            addEventListeners();
+            
+            // 清除搜索状态
+            clearSearchBtn.click();
+        }
+
+        // 获取颜色标签对应的CSS类
+        function getColorTagClass(color) {
+            if (!color) return '';
+            
+            // 根据颜色值判断对应的CSS类
+            if (color === 'yellow') return 'color-tag-yellow';
+            if (color === 'blue') return 'color-tag-blue';
+            if (color === 'red') return 'color-tag-red';
+            if (color === 'green') return 'color-tag-green';
+            if (color === 'purple') return 'color-tag-purple';
+            if (color === 'orange') return 'color-tag-orange';
+            
+            return '';
+        }
+
+        // 添加事件监听器
+        function addEventListeners() {
+            // 输入框变化事件
+            document.querySelectorAll('input[type="text"]').forEach(input => {
+                input.addEventListener('input', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    const field = this.getAttribute('data-field');
+                    tableData[index][field] = this.value;
+                    showStatus('数据已更新，请保存到GitHub', 'warning');
+                    
+                    // 如果正在搜索，重新执行搜索
+                    if (searchInput.value.trim() !== '') {
+                        performSearch();
+                    }
+                });
+            });
+            
+            // 删除按钮事件
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    tableData.splice(index, 1);
+                    renderTable();
+                    showStatus('行已删除，请保存到GitHub', 'warning');
+                });
+            });
+        }
+
+        // 显示状态消息
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status ${type}`;
+            statusMessage.style.display = 'block';
+            
+            if (type !== 'error') {
+                setTimeout(() => {
+                    statusMessage.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // 启用/禁用控制按钮
+        function toggleControls(enabled) {
+            addRowBtn.disabled = !enabled;
+            saveBtn.disabled = !enabled;
+            refreshBtn.disabled = !enabled;
+            deleteWorkbookBtn.disabled = !enabled;
+            shareBtn.disabled = !enabled;
+        }
+
+        // 切换工作簿
+        function switchWorkbook(workbookId) {
+            currentWorkbook = workbooks.find(w => w.id === workbookId);
+            if (currentWorkbook) {
+                tableData = currentWorkbook.data;
+                currentWorkbookName.textContent = currentWorkbook.name;
+                renderTable();
+                renderWorkbookList();
+                showStatus(`已切换到工作簿: ${currentWorkbook.name}`, 'success');
+            }
+        }
+
+        // 添加新工作簿
+        function addWorkbook(name, columns) {
+            const newWorkbook = {
+                id: 'workbook-' + Date.now(),
+                name: name,
+                columns: columns,
+                data: []
+            };
+            
+            workbooks.push(newWorkbook);
+            renderWorkbookList();
+            switchWorkbook(newWorkbook.id);
+            showStatus(`工作簿 "${name}" 已创建`, 'success');
+            
+            // 保存到GitHub
+            if (isAuthenticated) {
+                saveToGist();
+            }
+        }
+
+        // GitHub API请求
+        async function githubApiRequest(url, options = {}) {
+            if (!githubToken) {
+                throw new Error('未提供GitHub令牌');
+            }
+            
+            const defaultOptions = {
+                headers: {
+                    'Authorization': `token ${githubToken}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            const finalOptions = { ...defaultOptions, ...options };
+            
+            try {
+                const response = await fetch(url, finalOptions);
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || `HTTP错误: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('GitHub API请求失败:', error);
+                throw error;
+            }
+        }
+
+        // 从Gist加载数据
+        async function loadFromGist() {
+            if (!isAuthenticated) {
+                showStatus('请先进行GitHub身份验证', 'error');
+                return;
+            }
+            
+            try {
+                authBtn.innerHTML = '<div class="loading"></div> 加载中...';
+                authBtn.disabled = true;
+                
+                if (!gistId) {
+                    // 如果没有Gist ID，尝试从本地存储获取
+                    gistId = localStorage.getItem('multiTableGistId');
+                    if (gistId) {
+                        // 获取现有Gist数据
+                        const gist = await githubApiRequest(`https://api.github.com/gists/${gistId}`);
+                        
+                        if (!gist.files || !gist.files['multi-table-data.json']) {
+                            throw new Error('Gist中未找到表格数据文件');
+                        }
+                        
+                        const content = gist.files['multi-table-data.json'].content;
+                        const data = JSON.parse(content);
+                        workbooks = data.workbooks || initialWorkbooks;
+                        
+                        // 加载颜色标签
+                        if (data.colorLabels) {
+                            colorLabels = data.colorLabels;
+                            updateColorLabelsInputs();
+                        }
+                        
+                        renderWorkbookList();
+                        
+                        if (workbooks.length > 0) {
+                            switchWorkbook(workbooks[0].id);
+                        }
+                        
+                        showStatus('数据已从GitHub加载', 'success');
+                        toggleControls(true);
+                        syncInfo.style.display = 'flex';
+                        tokenManagement.style.display = 'block';
+                        shareSection.style.display = 'block';
+                        return;
+                    } else {
+                        // 没有现有Gist，创建新Gist
+                        const gistData = {
+                            description: "多工作簿在线表格数据",
+                            public: false,
+                            files: {
+                                "multi-table-data.json": {
+                                    content: JSON.stringify({
+                                        workbooks: initialWorkbooks,
+                                        colorLabels: colorLabels
+                                    }, null, 2)
+                                }
+                            }
+                        };
+                        
+                        const result = await githubApiRequest('https://api.github.com/gists', {
+                            method: 'POST',
+                            body: JSON.stringify(gistData)
+                        });
+                        
+                        gistId = result.id;
+                        localStorage.setItem('multiTableGistId', gistId);
+                        workbooks = initialWorkbooks;
+                        renderWorkbookList();
+                        
+                        if (workbooks.length > 0) {
+                            switchWorkbook(workbooks[0].id);
+                        }
+                        
+                        showStatus('已创建新的GitHub Gist并加载初始数据', 'success');
+                        toggleControls(true);
+                        syncInfo.style.display = 'flex';
+                        tokenManagement.style.display = 'block';
+                        shareSection.style.display = 'block';
+                        return;
+                    }
+                }
+                
+                // 获取现有Gist数据
+                const gist = await githubApiRequest(`https://api.github.com/gists/${gistId}`);
+                
+                if (!gist.files || !gist.files['multi-table-data.json']) {
+                    throw new Error('Gist中未找到表格数据文件');
+                }
+                
+                const content = gist.files['multi-table-data.json'].content;
+                const data = JSON.parse(content);
+                workbooks = data.workbooks || initialWorkbooks;
+                
+                // 加载颜色标签
+                if (data.colorLabels) {
+                    colorLabels = data.colorLabels;
+                    updateColorLabelsInputs();
+                }
+                
+                renderWorkbookList();
+                
+                if (workbooks.length > 0) {
+                    switchWorkbook(workbooks[0].id);
+                }
+                
+                showStatus('数据已从GitHub加载', 'success');
+                toggleControls(true);
+                syncInfo.style.display = 'flex';
+                tokenManagement.style.display = 'block';
+                shareSection.style.display = 'block';
+                
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                showStatus(`加载失败: ${error.message}`, 'error');
+            } finally {
+                authBtn.innerHTML = '<i class="fas fa-key"></i> 验证并加载';
+                authBtn.disabled = false;
+            }
+        }
+
+        // 更新颜色标签输入框和按钮文字
+        function updateColorLabelsInputs() {
+            yellowNote.value = colorLabels.yellow || '';
+            blueNote.value = colorLabels.blue || '';
+            redNote.value = colorLabels.red || '';
+            greenNote.value = colorLabels.green || '';
+            purpleNote.value = colorLabels.purple || '';
+            orangeNote.value = colorLabels.orange || '';
+        }
+
+        // 保存数据到Gist
+        async function saveToGist() {
+            if (!isAuthenticated || !gistId) {
+                showStatus('请先进行GitHub身份验证', 'error');
+                return;
+            }
+            
+            // 更新当前工作簿的数据
+            if (currentWorkbook) {
+                currentWorkbook.data = tableData;
+            }
+            
+            try {
+                saveBtn.innerHTML = '<div class="loading"></div> 保存中...';
+                saveBtn.disabled = true;
+                
+                // 更新颜色标签
+                colorLabels.yellow = yellowNote.value;
+                colorLabels.blue = blueNote.value;
+                colorLabels.red = redNote.value;
+                colorLabels.green = greenNote.value;
+                colorLabels.purple = purpleNote.value;
+                colorLabels.orange = orangeNote.value;
+                
+                // 更新按钮文字
+                updateColorLabelsInputs();
+                
+                const gistData = {
+                    description: "多工作簿在线表格数据 - 更新于 " + new Date().toLocaleString(),
+                    files: {
+                        "multi-table-data.json": {
+                            content: JSON.stringify({
+                                workbooks: workbooks,
+                                colorLabels: colorLabels
+                            }, null, 2)
+                        }
+                    }
+                };
+                
+                await githubApiRequest(`https://api.github.com/gists/${gistId}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify(gistData)
+                });
+                
+                showStatus('数据已保存到GitHub', 'success');
+                
+            } catch (error) {
+                console.error('保存数据失败:', error);
+                showStatus(`保存失败: ${error.message}`, 'error');
+            } finally {
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> 保存表格';
+                saveBtn.disabled = false;
+            }
+        }
+
+        // 加载共享数据
+        loadSharedBtn.addEventListener('click', async function() {
+            const sharedGistIdValue = sharedGistId.value.trim();
+            if (!sharedGistIdValue) {
+                showStatus('请输入要共享的Gist ID', 'error');
+                return;
+            }
+            
+            if (!githubToken) {
+                showStatus('请先提供GitHub令牌来访问数据', 'error');
+                return;
+            }
+            
+            try {
+                loadSharedBtn.innerHTML = '<div class="loading"></div> 加载中...';
+                loadSharedBtn.disabled = true;
+                
+                // 使用现有令牌但加载指定的Gist
+                const gist = await githubApiRequest(`https://api.github.com/gists/${sharedGistIdValue}`);
+                
+                if (!gist.files || !gist.files['multi-table-data.json']) {
+                    throw new Error('Gist中未找到表格数据文件');
+                }
+                
+                const content = gist.files['multi-table-data.json'].content;
+                const data = JSON.parse(content);
+                workbooks = data.workbooks || [];
+                
+                if (workbooks.length === 0) {
+                    throw new Error('共享的工作簿中没有数据');
+                }
+                
+                // 加载颜色标签
+                if (data.colorLabels) {
+                    colorLabels = data.colorLabels;
+                    updateColorLabelsInputs();
+                }
+                
+                // 设置当前Gist ID为共享的ID
+                gistId = sharedGistIdValue;
+                localStorage.setItem('multiTableGistId', gistId);
+                
+                renderWorkbookList();
+                switchWorkbook(workbooks[0].id);
+                
+                showStatus('共享数据加载成功！您现在可以编辑并保存到自己的Gist', 'success');
+                toggleControls(true);
+                syncInfo.style.display = 'flex';
+                shareSection.style.display = 'block';
+                
+                // 自动生成分享链接
+                const newShareLink = generateShareableLink();
+                if (newShareLink) {
+                    shareLink.value = newShareLink;
+                    copyShareBtn.style.display = 'block';
+                }
+                
+            } catch (error) {
+                console.error('加载共享数据失败:', error);
+                showStatus(`加载共享数据失败: ${error.message}`, 'error');
+            } finally {
+                loadSharedBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> 加载共享';
+                loadSharedBtn.disabled = false;
+            }
+        });
+
+        // 生成分享链接
+        function generateShareableLink() {
+            if (gistId) {
+                // 移除现有参数，只保留gist_id
+                const url = new URL(window.location.href);
+                url.searchParams.set('view_gist_id', gistId);
+                return url.toString();
+            }
+            return null;
+        }
+
+        // 生成分享链接
+        generateShareBtn.addEventListener('click', function() {
+            const shareUrl = generateShareableLink();
+            if (shareUrl) {
+                shareLink.value = shareUrl;
+                copyShareBtn.style.display = 'block';
+                showStatus('分享链接已生成！复制并发送给他人', 'success');
+            } else {
+                showStatus('无法生成分享链接，请确保已保存数据到GitHub', 'error');
+            }
+        });
+
+        // 复制分享链接
+        copyShareBtn.addEventListener('click', function() {
+            shareLink.select();
+            try {
+                navigator.clipboard.writeText(shareLink.value).then(() => {
+                    showStatus('分享链接已复制到剪贴板！', 'success');
+                }).catch(() => {
+                    fallbackCopyToClipboard();
+                });
+            } catch (err) {
+                fallbackCopyToClipboard();
+            }
+            
+            function fallbackCopyToClipboard() {
+                document.execCommand('copy');
+                showStatus('分享链接已复制到剪贴板！', 'success');
+            }
+        });
+
+        // 进入查看模式
+        enterViewModeBtn.addEventListener('click', function() {
+            const gistId = viewGistId.value.trim();
+            if (!gistId) {
+                showStatus('请输入要查看的Gist ID', 'error');
+                return;
+            }
+            
+            enterViewMode(gistId);
+        });
+
+        // 切换自动刷新
+        autoRefreshToggle.addEventListener('click', function() {
+            autoRefreshEnabled = !autoRefreshEnabled;
+            
+            if (autoRefreshEnabled) {
+                // 开启自动刷新
+                autoRefreshInterval = setInterval(() => {
+                    loadViewModeData(currentViewGistId);
+                }, 30000); // 每30秒刷新一次
+                
+                autoRefreshToggle.innerHTML = '<i class="fas fa-sync"></i> 关闭自动刷新';
+                autoRefreshToggle.classList.remove('btn-info');
+                autoRefreshToggle.classList.add('btn-warning');
+                
+                // 添加自动刷新指示器
+                if (!document.querySelector('.auto-refresh-indicator')) {
+                    const indicator = document.createElement('span');
+                    indicator.className = 'auto-refresh-indicator';
+                    indicator.innerHTML = '<span class="pulse"></span> 自动刷新已开启';
+                    document.querySelector('.workbook-title').appendChild(indicator);
+                }
+                
+                showStatus('自动刷新已开启，每30秒刷新一次数据', 'success');
+            } else {
+                // 关闭自动刷新
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+                
+                autoRefreshToggle.innerHTML = '<i class="fas fa-sync"></i> 开启自动刷新';
+                autoRefreshToggle.classList.remove('btn-warning');
+                autoRefreshToggle.classList.add('btn-info');
+                
+                // 移除自动刷新指示器
+                const indicator = document.querySelector('.auto-refresh-indicator');
+                if (indicator) {
+                    indicator.remove();
+                }
+                
+                showStatus('自动刷新已关闭', 'warning');
+            }
+        });
+
+        // 进入查看模式函数
+        function enterViewMode(gistId) {
+            isViewMode = true;
+            currentViewGistId = gistId;
+            
+            // 添加查看模式类到body
+            document.body.classList.add('view-mode');
+            
+            // 显示自动刷新按钮
+            autoRefreshToggle.style.display = 'block';
+            
+            // 加载数据
+            loadViewModeData(gistId);
+            
+            showStatus('已进入查看模式，数据只读', 'success');
+        }
+
+        // 退出查看模式
+        function exitViewMode() {
+            isViewMode = false;
+            currentViewGistId = null;
+            
+            // 移除查看模式类
+            document.body.classList.remove('view-mode');
+            
+            // 隐藏自动刷新按钮
+            autoRefreshToggle.style.display = 'none';
+            
+            // 关闭自动刷新
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+            
+            // 移除自动刷新指示器
+                const indicator = document.querySelector('.auto-refresh-indicator');
+                if (indicator) {
+                    indicator.remove();
+                }
+            
+            autoRefreshEnabled = false;
+            autoRefreshToggle.innerHTML = '<i class="fas fa-sync"></i> 开启自动刷新';
+            autoRefreshToggle.classList.remove('btn-warning');
+            autoRefreshToggle.classList.add('btn-info');
+        }
+
+        // 加载查看模式数据
+        async function loadViewModeData(gistId) {
+            try {
+                enterViewModeBtn.innerHTML = '<div class="loading"></div> 加载中...';
+                enterViewModeBtn.disabled = true;
+                
+                // 使用公开API获取Gist数据（不需要令牌）
+                const response = await fetch(`https://api.github.com/gists/${gistId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`无法加载Gist: ${response.status} ${response.statusText}`);
+                }
+                
+                const gist = await response.json();
+                
+                if (!gist.files || !gist.files['multi-table-data.json']) {
+                    throw new Error('Gist中未找到表格数据文件');
+                }
+                
+                const content = gist.files['multi-table-data.json'].content;
+                const data = JSON.parse(content);
+                workbooks = data.workbooks || [];
+                
+                if (workbooks.length === 0) {
+                    throw new Error('Gist中没有工作簿数据');
+                }
+                
+                // 加载颜色标签
+                if (data.colorLabels) {
+                    colorLabels = data.colorLabels;
+                    updateColorLabelsInputs();
+                }
+                
+                // 渲染工作簿列表（只读模式下的特殊渲染）
+                renderReadonlyWorkbookList();
+                
+                // 切换到第一个工作簿
+                if (workbooks.length > 0) {
+                    switchToReadonlyWorkbook(workbooks[0].id);
+                }
+                
+                // 渲染颜色标签图例
+                renderColorTagLegend();
+                
+                showStatus('数据加载成功', 'success');
+                
+            } catch (error) {
+                console.error('加载查看数据失败:', error);
+                showStatus(`加载失败: ${error.message}`, 'error');
+                
+                // 如果是认证错误，提示可能需要公开Gist
+                if (error.message.includes('401') || error.message.includes('403')) {
+                    showStatus('提示: 请确保Gist是公开的，或提供GitHub令牌', 'warning');
+                }
+            } finally {
+                enterViewModeBtn.innerHTML = '<i class="fas fa-eye"></i> 进入查看模式';
+                enterViewModeBtn.disabled = false;
+            }
+        }
+
+        // 渲染颜色标签图例（查看模式下）
+        function renderColorTagLegend() {
+            // 移除现有的颜色标签图例
+            const existingLegend = document.querySelector('.color-tag-legend');
+            if (existingLegend) {
+                existingLegend.remove();
+            }
+            
+            // 创建新的颜色标签图例
+            const colorTagLegend = document.createElement('div');
+            colorTagLegend.className = 'color-tag-legend';
+            
+            let legendItemsHtml = '';
+            for (const [color, label] of Object.entries(colorLabels)) {
+                if (label && label.trim() !== '') {
+                    legendItemsHtml += `
+                        <div class="color-tag-legend-item">
+                            <div class="color-tag-legend-sample ${color}"></div>
+                            <span>${label}</span>
+                        </div>
+                    `;
+                }
+            }
+            
+            if (legendItemsHtml !== '') {
+                colorTagLegend.innerHTML = `
+                    <h4><i class="fas fa-tags"></i> 颜色标签说明</h4>
+                    <div class="color-tag-legend-items">
+                        ${legendItemsHtml}
+                    </div>
+                `;
+                
+                // 将颜色标签图例插入到表格容器之前
+                const tableContainer = document.querySelector('.table-container');
+                document.querySelector('.main-content').insertBefore(colorTagLegend, tableContainer);
+            }
+        }
+
+        // 渲染只读模式下的工作簿列表
+        function renderReadonlyWorkbookList() {
+            workbookList.innerHTML = '';
+            
+            workbooks.forEach(workbook => {
+                const workbookItem = document.createElement('div');
+                workbookItem.className = `workbook-item ${workbook.id === currentWorkbook?.id ? 'active' : ''}`;
+                workbookItem.innerHTML = `
+                    <i class="fas fa-book"></i>
+                    <span>${workbook.name}</span>
+                `;
+                workbookItem.addEventListener('click', () => switchToReadonlyWorkbook(workbook.id));
+                workbookList.appendChild(workbookItem);
+            });
+        }
+
+        // 切换到只读工作簿
+        function switchToReadonlyWorkbook(workbookId) {
+            currentWorkbook = workbooks.find(w => w.id === workbookId);
+            if (currentWorkbook) {
+                tableData = currentWorkbook.data;
+                currentWorkbookName.textContent = currentWorkbook.name;
+                renderReadonlyTable();
+                renderReadonlyWorkbookList();
+                
+                // 在只读模式下不显示状态消息，避免干扰查看体验
+            }
+        }
+
+        // 渲染只读表格 - 关键修复
+        function renderReadonlyTable() {
+            tableBody.innerHTML = '';
+            
+            if (!currentWorkbook || tableData.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td colspan="${currentWorkbook ? currentWorkbook.columns.length : 6}" style="text-align: center; color: #666; padding: 40px;">
+                        <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 10px; display: block;"></i>
+                        <p>表格为空</p>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+                return;
+            }
+            
+            // 渲染表头
+            const thead = document.querySelector('#dataTable thead');
+            thead.innerHTML = '';
+            let headerRow = '<tr>';
+            currentWorkbook.columns.forEach(column => {
+                headerRow += `<th>${column}</th>`;
+            });
+            headerRow += '</tr>';
+            thead.innerHTML = headerRow;
+            
+            // 渲染表格数据（只读）
+            tableData.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                let rowHtml = '';
+                
+                // 第一列是颜色标签列，特殊处理
+                currentWorkbook.columns.forEach((column, colIndex) => {
+                    if (colIndex === 0) {
+                        // 颜色标签列 - 现在为空
+                        const colorTagClass = getColorTagClass(row._rowColor);
+                        rowHtml += `<td class="color-tag-cell ${colorTagClass}"></td>`;
+                    } else {
+                        rowHtml += `<td>${row[column] || ''}</td>`;
+                    }
+                });
+                
+                tr.innerHTML = rowHtml;
+                
+                // 应用行颜色 - 这是修复的关键部分
+                if (row._rowColor && row._rowColor !== '') {
+                    tr.classList.add(`row-${row._rowColor}`);
+                }
+                
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // 颜色标签功能
+        function applyRowColorTag(color) {
+            if (selectedRowIndex === -1) {
+                showStatus('请先选择要标记的行', 'warning');
+                return;
+            }
+            
+            if (color) {
+                // 应用新颜色标签
+                tableData[selectedRowIndex]['颜色标签'] = '';
+                tableData[selectedRowIndex]._rowColor = color;
+                
+                // 显示颜色标签
+                const label = colorLabels[color] || '';
+                showStatus(`已为第 ${selectedRowIndex + 1} 行应用${label}标签`, 'success');
+            } else {
+                // 清除颜色标签
+                tableData[selectedRowIndex]['颜色标签'] = '';
+                tableData[selectedRowIndex]._rowColor = '';
+                showStatus(`已清除第 ${selectedRowIndex + 1} 行的颜色标签`, 'success');
+            }
+            
+            // 重新渲染表格
+            renderTable();
+            
+            // 保存到GitHub
+            if (isAuthenticated) {
+                saveToGist();
+            }
+        }
+
+        // 颜色按钮事件
+        yellowBtn.addEventListener('click', () => applyRowColorTag('yellow'));
+        blueBtn.addEventListener('click', () => applyRowColorTag('blue'));
+        redBtn.addEventListener('click', () => applyRowColorTag('red'));
+        greenBtn.addEventListener('click', () => applyRowColorTag('green'));
+        purpleBtn.addEventListener('click', () => applyRowColorTag('purple'));
+        orangeBtn.addEventListener('click', () => applyRowColorTag('orange'));
+        clearColorBtn.addEventListener('click', () => applyRowColorTag(''));
+
+        // 颜色标签输入框事件 - 保存时更新标签
+        [yellowNote, blueNote, redNote, greenNote, purpleNote, orangeNote].forEach(input => {
+            input.addEventListener('blur', function() {
+                // 保存到GitHub
+                if (isAuthenticated) {
+                    saveToGist();
+                }
+            });
+        });
+
+        // 面板折叠/展开功能
+        togglePanel.addEventListener('click', function() {
+            isPanelCollapsed = !isPanelCollapsed;
+            
+            if (isPanelCollapsed) {
+                sidebarColorPanel.classList.add('collapsed');
+                panelIcon.className = 'fas fa-chevron-down';
+            } else {
+                sidebarColorPanel.classList.remove('collapsed');
+                panelIcon.className = 'fas fa-chevron-up';
+            }
+        });
+
+        // 事件监听器设置
+        addWorkbookBtn.addEventListener('click', function() {
+            addWorkbookModal.style.display = 'flex';
+        });
+
+        closeModal.addEventListener('click', function() {
+            addWorkbookModal.style.display = 'none';
+        });
+
+        cancelCreateBtn.addEventListener('click', function() {
+            addWorkbookModal.style.display = 'none';
+        });
+
+        createWorkbookBtn.addEventListener('click', function() {
+            const name = workbookNameInput.value.trim();
+            const columnsText = workbookColumnsInput.value.trim();
+            
+            if (!name) {
+                showStatus('请输入工作簿名称', 'error');
+                return;
+            }
+            
+            const columns = columnsText.split('\n')
+                .map(col => col.trim())
+                .filter(col => col.length > 0);
+            
+            if (columns.length === 0) {
+                showStatus('请至少定义一个列', 'error');
+                return;
+            }
+            
+            addWorkbook(name, columns);
+            addWorkbookModal.style.display = 'none';
+            
+            // 清空表单
+            workbookNameInput.value = '';
+            workbookColumnsInput.value = '颜色标签\n姓名\n年龄\n职业\n城市';
+        });
+
+        // 添加新行
+        addRowBtn.addEventListener('click', function() {
+            if (!currentWorkbook) return;
+            
+            const newRow = {};
+            currentWorkbook.columns.forEach(column => {
+                newRow[column] = "";
+            });
+            newRow._rowColor = '';
+            
+            tableData.push(newRow);
+            renderTable();
+            showStatus('新行已添加，请保存到GitHub', 'warning');
+        });
+
+        // 保存表格
+        saveBtn.addEventListener('click', saveToGist);
+
+        // 刷新数据
+        refreshBtn.addEventListener('click', loadFromGist);
+
+        // 删除工作簿
+        deleteWorkbookBtn.addEventListener('click', function() {
+            if (!currentWorkbook) return;
+            
+            if (confirm(`确定要删除工作簿 "${currentWorkbook.name}" 吗？此操作不可撤销。`)) {
+                const index = workbooks.findIndex(w => w.id === currentWorkbook.id);
+                if (index !== -1) {
+                    workbooks.splice(index, 1);
+                    
+                    if (workbooks.length > 0) {
+                        switchWorkbook(workbooks[0].id);
+                    } else {
+                        currentWorkbook = null;
+                        tableData = [];
+                        currentWorkbookName.textContent = '请选择工作簿';
+                        renderTable();
+                    }
+                    
+                    renderWorkbookList();
+                    showStatus('工作簿已删除，请保存到GitHub', 'warning');
+                    
+                    // 保存到GitHub
+                    if (isAuthenticated) {
+                        saveToGist();
+                    }
+                }
+            }
+        });
+
+        // GitHub身份验证
+        authBtn.addEventListener('click', function() {
+            const token = tokenInput.value.trim();
+            
+            if (!token) {
+                showStatus('请输入GitHub个人访问令牌', 'error');
+                return;
+            }
+            
+            githubToken = token;
+            isAuthenticated = true;
+            
+            // 保存令牌到本地存储
+            saveTokenToStorage(token);
+            
+            // 隐藏令牌输入
+            tokenInput.value = '********';
+            tokenInput.type = 'password';
+            tokenVisible = false;
+            toggleTokenVisibility.innerHTML = '<i class="fas fa-eye"></i>';
+            
+            loadFromGist();
+        });
+
+        // 从URL参数获取Gist ID
+        function getGistIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('view_gist_id');
+        }
+
+        // 初始化
+        window.addEventListener('DOMContentLoaded', function() {
+            // 检查URL中是否有查看模式参数
+            const urlGistId = getGistIdFromUrl();
+            
+            if (urlGistId) {
+                // 直接进入查看模式
+                viewGistId.value = urlGistId;
+                enterViewMode(urlGistId);
+            } else {
+                // 原有的初始化逻辑
+                const savedToken = loadTokenFromStorage();
+                const savedGistId = localStorage.getItem('multiTableGistId');
+                
+                if (savedToken) {
+                    githubToken = savedToken;
+                    isAuthenticated = true;
+                    tokenInput.value = '********';
+                    tokenManagement.style.display = 'block';
+                    tokenStatus.textContent = '已保存';
+                }
+                
+                if (savedGistId) {
+                    gistId = savedGistId;
+                }
+                
+                // 如果没有GitHub令牌，先使用本地数据
+                if (!savedToken) {
+                    workbooks = initialWorkbooks;
+                    renderWorkbookList();
+                    
+                    if (workbooks.length > 0) {
+                        switchWorkbook(workbooks[0].id);
+                    }
+                    
+                    showStatus('使用本地示例数据。请进行GitHub身份验证以启用云同步。', 'warning');
+                    toggleControls(true);
+                } else {
+                    isAuthenticated = true;
+                    loadFromGist();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
